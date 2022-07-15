@@ -25,12 +25,12 @@ open class DefaultSocketListener : WebSocketListener() {
 
     override fun onMessage(webSocket: WebSocket, text: String) {
         super.onMessage(webSocket, text)
-        Log.d(javaClass.simpleName, "onMessage: $text")
+//        Log.d(javaClass.simpleName, "onMessage: $text")
     }
 
     override fun onMessage(webSocket: WebSocket, bytes: ByteString) {
         super.onMessage(webSocket, bytes)
-        Log.d(javaClass.simpleName, "onMessage: ${bytes.utf8()}")
+//        Log.d(javaClass.simpleName, "onMessage: ${bytes.utf8()}")
     }
 
     override fun onOpen(webSocket: WebSocket, response: Response) {

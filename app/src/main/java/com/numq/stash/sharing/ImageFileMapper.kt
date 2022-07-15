@@ -1,4 +1,4 @@
-package com.numq.stash.home
+package com.numq.stash.sharing
 
 import com.numq.stash.websocket.SocketMessage
 import org.json.JSONObject

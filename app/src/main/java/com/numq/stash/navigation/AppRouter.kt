@@ -20,7 +20,7 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import com.numq.stash.home.Home
+import com.numq.stash.sharing.Home
 import kotlinx.coroutines.runBlocking
 
 @OptIn(ExperimentalPermissionsApi::class)
