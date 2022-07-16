@@ -65,11 +65,11 @@ fun Home(scaffoldState: ScaffoldState, vm: HomeViewModel = getViewModel()) {
                     Icon(Icons.Rounded.Refresh, "refresh", modifier = Modifier.size(32.dp))
                 }
                 IconButton(onClick = { vm.stopSharing() }) {
-                    Icon(Icons.Rounded.Cloud, "stop sharing", modifier = Modifier.size(32.dp))
+                    Icon(Icons.Rounded.CloudOff, "stop sharing", modifier = Modifier.size(32.dp))
                 }
             } else {
                 IconButton(onClick = { vm.startSharing() }) {
-                    Icon(Icons.Rounded.CloudOff, "start sharing", modifier = Modifier.size(32.dp))
+                    Icon(Icons.Rounded.Cloud, "start sharing", modifier = Modifier.size(32.dp))
                 }
             }
         }
