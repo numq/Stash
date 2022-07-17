@@ -49,7 +49,7 @@ class SocketClient : SocketApi {
 
     override fun signal(type: String, body: JSONObject) = socket?.send(JSONObject().apply {
         put("type", type)
-        put("body", body.toString())
+        put("body", body)
     }.toString()) == true
 
     override fun connect(): Boolean {

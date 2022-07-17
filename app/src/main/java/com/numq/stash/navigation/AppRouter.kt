@@ -50,7 +50,7 @@ fun AppRouter() {
                     startDestination = Route.Home.destination
                 ) {
                     composable(Route.Home.destination) {
-                        Home(scaffoldState)
+                        Home(scaffoldState, navController)
                     }
                 }
             }

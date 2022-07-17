@@ -41,7 +41,15 @@ class HomeViewModel constructor(
     }
 
     fun startSharing() =
-        startSharing.invoke(Unit) { it.fold(onError) { _state.update { s -> s.copy(isSharing = it) } } }
+        startSharing.invoke(Unit) {
+            it.fold(onError) { connected ->
+                if (connected) _state.update { s ->
+                    s.copy(
+                        isSharing = connected
+                    )
+                }.also { refresh() }
+            }
+        }
 
     fun stopSharing() =
         stopSharing.invoke(Unit) { it.fold(onError) { _state.update { s -> s.copy(isSharing = it) } } }

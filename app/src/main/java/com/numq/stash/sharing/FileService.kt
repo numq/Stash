@@ -12,7 +12,7 @@ class FileService(private val client: SocketClient) : FileApi {
 
     companion object {
         const val REFRESH = "refresh"
-        const val SEND = "image"
+        const val SEND_IMAGE = "image"
     }
 
     override val files = client.messages
@@ -28,7 +28,7 @@ class FileService(private val client: SocketClient) : FileApi {
 
     override fun refresh() = client.signal(REFRESH)
 
-    override fun sendFile(imageFile: ImageFile) = client.signal(SEND, JSONObject().apply {
-        put("image", imageFile.blob)
+    override fun sendFile(imageFile: ImageFile) = client.signal(SEND_IMAGE, JSONObject().apply {
+        put(SEND_IMAGE, imageFile.blob)
     })
 }
