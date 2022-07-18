@@ -1,4 +1,4 @@
-package com.numq.stash.sharing
+package com.numq.stash.files
 
 import com.numq.stash.interactor.UseCase
 import kotlinx.coroutines.flow.Flow

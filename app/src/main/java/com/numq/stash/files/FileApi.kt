@@ -1,4 +1,4 @@
-package com.numq.stash.sharing
+package com.numq.stash.files
 
 import kotlinx.coroutines.flow.Flow
 
@@ -7,5 +7,5 @@ interface FileApi {
     fun startSharing(): Boolean
     fun stopSharing(): Boolean
     fun refresh(): Boolean
-    fun sendFile(imageFile: ImageFile): Boolean
+    fun sendFile(file: ImageFile): Boolean
 }

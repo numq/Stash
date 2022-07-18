@@ -1,10 +1,5 @@
-package com.numq.stash.sharing
+package com.numq.stash.files
 
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.net.Uri
-import android.util.Base64
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -22,56 +17,31 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.numq.stash.home.ShowError
 import org.koin.androidx.compose.getViewModel
-import java.io.ByteArrayOutputStream
-import java.io.IOException
 
 
 @Composable
-fun Home(
+fun FilesScreen(
     scaffoldState: ScaffoldState,
     navController: NavController,
-    vm: HomeViewModel = getViewModel()
+    vm: FilesViewModel = getViewModel()
 ) {
 
-    val context = LocalContext.current
     val state by vm.state.collectAsState()
 
     val (currentIndex, setCurrentIndex) = remember {
         mutableStateOf(-1)
     }
 
-    val onImageUpload: (Uri) -> Unit = { uri ->
-        try {
-            val extension = context.contentResolver.getType(uri)
-            val stream = ByteArrayOutputStream().use { output ->
-                BitmapFactory.decodeStream(context.contentResolver.openInputStream(uri))
-                    .compress(Bitmap.CompressFormat.JPEG, 100, output)
-                output
-            }
-            val files = ImageFile(
-                "data:${extension};base64,${
-                    Base64.encodeToString(
-                        stream.toByteArray(),
-                        Base64.DEFAULT
-                    )
-                }"
-            )
-            Log.e("BLOB", files.blob)
-            vm.sendFile(files)
-        } catch (e: IOException) {
-            e.localizedMessage?.let { Log.e("Upload image", it) }
-        }
-    }
-
     val uploadLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) {
-            it.forEach(onImageUpload)
+            it.forEach { uri ->
+                vm.uploadFile(uri.toString())
+            }
         }
 
     val uploadFile: () -> Unit = { uploadLauncher.launch(arrayOf("image/*")) }
@@ -96,7 +66,25 @@ fun Home(
         ) {
             items(state.imageFiles) { file ->
                 ImageFileItem(file) {
-
+                    vm.downloadOneFile(it)
+                }
+            }
+        }
+        if (state.imageFiles.isNotEmpty()) {
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Button(onClick = {
+                    vm.downloadMultipleFiles(state.imageFiles)
+                }) {
+                    Text("DOWNLOAD ALL")
+                }
+                Button(onClick = {
+                    vm.downloadZip(state.imageFiles)
+                }) {
+                    Text("DOWNLOAD ZIP")
                 }
             }
         }
@@ -108,9 +96,6 @@ fun Home(
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            state.exception?.toString()?.let {
-                Text(it, color = Color.Red)
-            }
             if (state.isSharing) {
                 Text("Found ${state.imageFiles.count()} files", color = Color.Green)
                 IconButton(onClick = { vm.refresh() }) {
@@ -134,7 +119,7 @@ fun Home(
 @Composable
 fun ImageFileItem(file: ImageFile, onClick: (ImageFile) -> Unit) {
     AsyncImage(
-        model = Base64.decode(file.blob.split(",")[1], Base64.DEFAULT),
+        model = file.blob,
         contentDescription = "shared image",
         Modifier
             .fillMaxWidth()

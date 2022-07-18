@@ -1,8 +1,10 @@
-package com.numq.stash.sharing
+package com.numq.stash.files
 
+import com.numq.stash.extension.imageFile
+import com.numq.stash.extension.isImageFile
+import com.numq.stash.extension.isSocketMessage
+import com.numq.stash.extension.socketMessage
 import com.numq.stash.websocket.SocketClient
-import com.numq.stash.websocket.isSocketMessage
-import com.numq.stash.websocket.socketMessage
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
@@ -28,7 +30,7 @@ class FileService(private val client: SocketClient) : FileApi {
 
     override fun refresh() = client.signal(REFRESH)
 
-    override fun sendFile(imageFile: ImageFile) = client.signal(SEND_IMAGE, JSONObject().apply {
-        put(SEND_IMAGE, imageFile.blob)
+    override fun sendFile(file: ImageFile) = client.signal(SEND_IMAGE, JSONObject().apply {
+        put(SEND_IMAGE, file.blob)
     })
 }

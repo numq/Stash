@@ -9,8 +9,8 @@ sealed class Route private constructor(
 ) {
 
     private companion object {
-        const val HOME = "HOME"
+        const val FILES = "files"
     }
 
-    object Home : Route(HOME)
+    object Files : Route(FILES)
 }

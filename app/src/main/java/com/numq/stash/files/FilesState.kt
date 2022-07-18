@@ -1,6 +1,6 @@
-package com.numq.stash.sharing
+package com.numq.stash.files
 
-data class HomeState(
+data class FilesState(
     val isSharing: Boolean = false,
     val imageFiles: List<ImageFile> = emptyList(),
     val exception: Exception? = null

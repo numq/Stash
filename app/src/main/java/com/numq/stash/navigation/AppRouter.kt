@@ -20,7 +20,7 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import com.numq.stash.sharing.Home
+import com.numq.stash.files.FilesScreen
 import kotlinx.coroutines.runBlocking
 
 @OptIn(ExperimentalPermissionsApi::class)
@@ -47,10 +47,10 @@ fun AppRouter() {
             ) {
                 NavHost(
                     navController,
-                    startDestination = Route.Home.destination
+                    startDestination = Route.Files.destination
                 ) {
-                    composable(Route.Home.destination) {
-                        Home(scaffoldState, navController)
+                    composable(Route.Files.destination) {
+                        FilesScreen(scaffoldState, navController)
                     }
                 }
             }
