@@ -12,7 +12,7 @@ import okhttp3.WebSocketListener
 import okio.ByteString
 import org.json.JSONObject
 
-class SocketClient : SocketApi {
+class WebSocketService : WebSocketApi {
 
     private val coroutineContext = Dispatchers.Main + Job()
     private val coroutineScope = CoroutineScope(coroutineContext)
@@ -27,7 +27,7 @@ class SocketClient : SocketApi {
 
     private val client = OkHttpClient.Builder().build()
     private val request = Request.Builder().url(DEFAULT_URL).build()
-    private val listener = object : DefaultSocketListener() {
+    private val listener = object : DefaultWebSocketListener() {
         override fun onMessage(webSocket: WebSocket, text: String) {
             super.onMessage(webSocket, text)
             coroutineScope.launch {
@@ -44,7 +44,6 @@ class SocketClient : SocketApi {
     }
 
     private var socket: WebSocket? = null
-    override val connected = socket != null
     override val messages: Channel<String> = Channel()
 
     override fun signal(type: String, body: JSONObject) = socket?.send(JSONObject().apply {

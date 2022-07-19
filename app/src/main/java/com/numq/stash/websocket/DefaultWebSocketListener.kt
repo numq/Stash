@@ -6,7 +6,7 @@ import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import okio.ByteString
 
-open class DefaultSocketListener : WebSocketListener() {
+open class DefaultWebSocketListener : WebSocketListener() {
 
     override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
         super.onClosed(webSocket, code, reason)
