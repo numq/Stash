@@ -31,6 +31,6 @@ class FileService(private val client: SocketClient) : FileApi {
     override fun refresh() = client.signal(REFRESH)
 
     override fun sendFile(file: ImageFile) = client.signal(SEND_IMAGE, JSONObject().apply {
-        put(SEND_IMAGE, file.blob)
+        put(SEND_IMAGE, String(file.blob))
     })
 }

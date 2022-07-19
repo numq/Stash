@@ -10,7 +10,6 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Base64
-import android.util.Log
 import androidx.core.content.FileProvider
 import com.numq.stash.files.ImageFile
 import com.numq.stash.notification.NotificationApi
@@ -63,30 +62,26 @@ class LoadService constructor(
         }
     }
 
-    override fun upload(uri: String, onUpload: (ImageFile) -> Boolean): Boolean {
-        try {
-            Uri.parse(uri)?.let { parsedUri ->
-                val extension = contentResolver.getType(parsedUri)
-                extension?.let {
-                    val stream = ByteArrayOutputStream().use { output ->
-                        BitmapFactory.decodeStream(contentResolver.openInputStream(parsedUri))
-                            .compress(Bitmap.CompressFormat.JPEG, 100, output)
-                        output
-                    }
-                    val blob = "data:${extension};base64,${
+    override fun upload(uri: String, onUpload: (ImageFile) -> Boolean) = runCatching {
+        Uri.parse(uri)?.let {
+            val stream = contentResolver.openInputStream(it)
+            val type = contentResolver.getType(it)
+            val extension = type?.split("/")?.lastOrNull()
+            extension?.let {
+                ByteArrayOutputStream().use { output ->
+                    BitmapFactory.decodeStream(stream)
+                        .compress(Bitmap.CompressFormat.JPEG, 100, output)
+                    val blob = "data:${type};base64,${
                         Base64.encodeToString(
-                            stream.toByteArray(),
+                            output.toByteArray(),
                             Base64.DEFAULT
                         )
                     }"
                     return onUpload(ImageFile(extension, blob.toByteArray()))
                 }
             }
-        } catch (e: Exception) {
-            e.localizedMessage?.let { Log.e(javaClass.simpleName, it) }
         }
-        return false
-    }
+    }.isSuccess
 
     override fun downloadOne(file: ImageFile) = runCatching {
         val target = File(downloads, generateName(file.extension))
