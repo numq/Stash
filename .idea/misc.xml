@@ -3,7 +3,9 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/AndroidReborn/Stash/app/src/main/res/drawable/file_download_done.xml" value="0.1" />
         <entry key="..\:/AndroidReborn/Stash/app/src/main/res/xml/network_security_config.xml" value="0.18802083333333333" />
+        <entry key="..\:/AndroidReborn/Stash/app/src/main/res/xml/provider_paths.xml" value="0.18802083333333333" />
       </map>
     </option>
   </component>

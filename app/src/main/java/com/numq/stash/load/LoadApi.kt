@@ -1,4 +1,6 @@
-package com.numq.stash.files
+package com.numq.stash.load
+
+import com.numq.stash.files.ImageFile
 
 interface LoadApi {
     fun upload(uri: String, onUpload: (ImageFile) -> Boolean = { false }): Boolean

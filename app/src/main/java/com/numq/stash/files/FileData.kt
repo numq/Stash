@@ -3,6 +3,7 @@ package com.numq.stash.files
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import com.numq.stash.load.LoadApi
 
 class FileData constructor(
     private val loader: LoadApi,

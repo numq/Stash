@@ -7,9 +7,9 @@ import com.numq.stash.websocket.SocketMessage
 val SocketMessage.isImageFile: Boolean
     get() = body.has("image") && body.getString("image").startsWith("data:")
 val SocketMessage.imageFile: ImageFile
-    get() = ImageFile(
-        Base64.decode(
-            body.getString("image").split(",")[1],
-            Base64.DEFAULT
+    get() = with(body.getString("image")) {
+        ImageFile(
+            split("/")[1].split(";")[0],
+            Base64.decode(split(",")[1], Base64.DEFAULT)
         )
-    )
+    }
