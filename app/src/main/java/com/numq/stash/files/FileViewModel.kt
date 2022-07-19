@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class FilesViewModel constructor(
+class FileViewModel constructor(
     getFiles: GetFiles,
     private val startSharing: StartSharing,
     private val stopSharing: StopSharing,

@@ -28,7 +28,7 @@ import org.koin.androidx.compose.getViewModel
 fun FilesScreen(
     scaffoldState: ScaffoldState,
     navController: NavController,
-    vm: FilesViewModel = getViewModel()
+    vm: FileViewModel = getViewModel()
 ) {
 
     val state by vm.state.collectAsState()

@@ -1,8 +1,8 @@
-package com.numq.stash.load
+package com.numq.stash.loading
 
 import com.numq.stash.files.ImageFile
 
-interface LoadApi {
+interface LoadingApi {
     fun upload(uri: String, onUpload: (ImageFile) -> Boolean = { false }): Boolean
     fun downloadOne(file: ImageFile): Boolean
     fun downloadMultiple(files: List<ImageFile>): Boolean

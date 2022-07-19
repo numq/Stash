@@ -3,10 +3,12 @@ package com.numq.stash.di
 import android.app.Application
 import android.app.DownloadManager
 import com.numq.stash.files.*
-import com.numq.stash.load.LoadApi
-import com.numq.stash.load.LoadService
+import com.numq.stash.loading.LoadingApi
+import com.numq.stash.loading.LoadingService
 import com.numq.stash.notification.NotificationApi
 import com.numq.stash.notification.NotificationService
+import com.numq.stash.sharing.SharingApi
+import com.numq.stash.sharing.SharingService
 import com.numq.stash.websocket.SocketApi
 import com.numq.stash.websocket.SocketClient
 import org.koin.android.ext.koin.androidContext
@@ -18,9 +20,9 @@ val appModule = module {
     single { androidContext().contentResolver }
     single { androidContext().getSystemService(Application.DOWNLOAD_SERVICE) as DownloadManager }
     single { SocketClient() } bind SocketApi::class
-    single { FileService(get()) } bind FileApi::class
+    single { SharingService(get()) } bind SharingApi::class
     single { NotificationService(androidContext()) } bind NotificationApi::class
-    single { LoadService(androidContext(), get(), get()) } bind LoadApi::class
+    single { LoadingService(androidContext(), get(), get()) } bind LoadingApi::class
     single { FileData(get(), get()) } bind FileRepository::class
     single { StartSharing(get()) }
     single { StopSharing(get()) }
@@ -30,5 +32,5 @@ val appModule = module {
     single { DownloadOneFile(get()) }
     single { DownloadMultipleFiles(get()) }
     single { DownloadZip(get()) }
-    viewModel { FilesViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
+    viewModel { FileViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
 }

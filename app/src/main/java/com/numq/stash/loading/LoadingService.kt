@@ -1,4 +1,4 @@
-package com.numq.stash.load
+package com.numq.stash.loading
 
 import android.content.ContentResolver
 import android.content.ContentValues
@@ -19,11 +19,11 @@ import java.io.FileOutputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
-class LoadService constructor(
+class LoadingService constructor(
     private val context: Context,
     private val contentResolver: ContentResolver,
     private val notification: NotificationApi
-) : LoadApi {
+) : LoadingApi {
 
     private val imageType = "image/*"
     private val zipType = "application/zip"
