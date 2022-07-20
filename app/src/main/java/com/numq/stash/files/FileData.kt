@@ -14,7 +14,9 @@ class FileData constructor(
     private fun <T> T.wrap(): Either<Exception, T> = runCatching { this }.fold({ it.right() },
         { Exception(it.localizedMessage).left() })
 
-    override val files = sharingService.files.wrap()
+    override val events = sharingService.events.wrap()
+
+    override fun clear() = sharingService.clear().wrap()
 
     override fun startSharing() = sharingService.startSharing().wrap()
 
@@ -22,11 +24,15 @@ class FileData constructor(
 
     override fun refresh() = sharingService.refresh().wrap()
 
-    override fun uploadFile(uri: String) = loadingService.upload(uri) { sharingService.shareFile(it) }.wrap()
+    override fun sendFile(file: ImageFile) = sharingService.shareFile(file).wrap()
+
+    override fun uploadFile(uri: String) =
+        loadingService.upload(uri) { sharingService.shareFile(it) }.wrap()
 
     override fun downloadFile(file: ImageFile) = loadingService.downloadOne(file).wrap()
 
-    override fun downloadMultipleFiles(files: List<ImageFile>) = loadingService.downloadMultiple(files).wrap()
+    override fun downloadMultipleFiles(files: List<ImageFile>) =
+        loadingService.downloadMultiple(files).wrap()
 
     override fun downloadZip(files: List<ImageFile>) = loadingService.downloadZip(files).wrap()
 }

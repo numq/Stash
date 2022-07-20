@@ -21,6 +21,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.numq.stash.ui.error.ShowError
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.getViewModel
 
 
@@ -28,6 +30,7 @@ import org.koin.androidx.compose.getViewModel
 fun FilesScreen(
     scaffoldState: ScaffoldState,
     navController: NavController,
+    coroutineScope: CoroutineScope = rememberCoroutineScope(),
     vm: FileViewModel = getViewModel()
 ) {
 
@@ -71,20 +74,52 @@ fun FilesScreen(
             }
         }
         if (state.imageFiles.isNotEmpty()) {
-            Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(start = 8.dp, end = 8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Bottom
             ) {
-                Button(onClick = {
-                    vm.downloadMultipleFiles(state.imageFiles)
-                }) {
-                    Text("DOWNLOAD ALL")
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.Bottom
+                ) {
+                    Button(
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(backgroundColor = Color.Gray),
+                        onClick = {
+                            vm.downloadMultipleFiles(state.imageFiles)
+                        }) {
+                        Text("DOWNLOAD ALL")
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    Button(
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(backgroundColor = Color.Gray),
+                        onClick = {
+                            vm.downloadZip(state.imageFiles)
+                        }) {
+                        Text("DOWNLOAD ZIP")
+                    }
                 }
-                Button(onClick = {
-                    vm.downloadZip(state.imageFiles)
-                }) {
-                    Text("DOWNLOAD ZIP")
+                Button(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(backgroundColor = Color.DarkGray),
+                    onClick = {
+                        coroutineScope.launch {
+                            when (scaffoldState.snackbarHostState.showSnackbar(
+                                "Do you want to clear all?",
+                                "Yes, clear all",
+                                SnackbarDuration.Short
+                            )) {
+                                SnackbarResult.ActionPerformed -> vm.clearFiles()
+                                else -> Unit
+                            }
+                        }
+                    }) {
+                    Text("CLEAR ALL")
                 }
             }
         }

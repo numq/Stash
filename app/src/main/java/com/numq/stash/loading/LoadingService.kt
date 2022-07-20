@@ -64,22 +64,32 @@ class LoadingService constructor(
 
     override fun upload(uri: String, onUpload: (ImageFile) -> Boolean) = runCatching {
         Uri.parse(uri)?.let {
-            val stream = contentResolver.openInputStream(it)
-            val type = contentResolver.getType(it)
-            val extension = type?.split("/")?.lastOrNull()
-            extension?.let {
-                ByteArrayOutputStream().use { output ->
-                    BitmapFactory.decodeStream(stream)
-                        .compress(Bitmap.CompressFormat.JPEG, 100, output)
-                    val blob = "data:${type};base64,${
-                        Base64.encodeToString(
-                            output.toByteArray(),
-                            Base64.DEFAULT
-                        )
-                    }"
-                    return onUpload(ImageFile(extension, blob.toByteArray()))
+            contentResolver.getType(it)
+                ?.split("/")
+                ?.take(2)
+                ?.toTypedArray()
+                ?.let { (type, extension) ->
+                    contentResolver.openInputStream(it).use { stream ->
+                        val bitmapExtension =
+                            if (extension == "png") Pair(extension, Bitmap.CompressFormat.PNG)
+                            else Pair("jpeg", Bitmap.CompressFormat.JPEG)
+                        ByteArrayOutputStream().use { output ->
+                            BitmapFactory.decodeStream(stream)
+                                .compress(
+                                    bitmapExtension.second,
+                                    100,
+                                    output
+                                )
+                            val blob = "data:$type/${bitmapExtension.first};base64,${
+                                Base64.encodeToString(
+                                    output.toByteArray(),
+                                    Base64.DEFAULT
+                                )
+                            }"
+                            return onUpload(ImageFile(extension, blob.toByteArray()))
+                        }
+                    }
                 }
-            }
         }
     }.isSuccess
 

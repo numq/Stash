@@ -10,10 +10,12 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class FileViewModel constructor(
-    getFiles: GetFiles,
+    getEvents: GetEvents,
+    private val clearFiles: ClearFiles,
     private val startSharing: StartSharing,
     private val stopSharing: StopSharing,
     private val refresh: Refresh,
+    private val sendFile: SendFile,
     private val uploadFile: UploadFile,
     private val downloadOneFile: DownloadOneFile,
     private val downloadMultipleFiles: DownloadMultipleFiles,
@@ -24,14 +26,29 @@ class FileViewModel constructor(
     val state: StateFlow<FilesState> = _state.asStateFlow()
 
     init {
-        getFiles.invoke(Unit) {
-            it.fold(onError) { files ->
+        getEvents.invoke(Unit) {
+            it.fold(onError) { events ->
                 viewModelScope.launch {
-                    files.collect { file ->
-                        if (!state.value.imageFiles.contains(file)) {
-                            _state.update { s ->
-                                s.copy(imageFiles = s.imageFiles.plus(file))
+                    events.collect { event ->
+                        when (event) {
+                            is FileEvent.Clear -> {
+                                _state.update { s ->
+                                    s.copy(imageFiles = emptyList())
+                                }
                             }
+                            is FileEvent.Refresh -> {
+                                state.value.imageFiles.forEach { file ->
+                                    sendFile.invoke(file) {}
+                                }
+                            }
+                            is FileEvent.File -> {
+                                if (!state.value.imageFiles.contains(event.file)) {
+                                    _state.update { s ->
+                                        s.copy(imageFiles = s.imageFiles.plus(event.file))
+                                    }
+                                }
+                            }
+                            else -> Unit
                         }
                     }
                 }
@@ -42,6 +59,8 @@ class FileViewModel constructor(
     private val onError: (Exception) -> Unit = { e ->
         _state.update { it.copy(exception = e) }
     }
+
+    fun clearFiles() = clearFiles.invoke(Unit) { it.fold(onError) {} }
 
     fun startSharing() =
         startSharing.invoke(Unit) {
@@ -61,7 +80,8 @@ class FileViewModel constructor(
 
     fun downloadOneFile(file: ImageFile) = downloadOneFile.invoke(file) { it.fold(onError) {} }
 
-    fun downloadMultipleFiles(files: List<ImageFile>) = downloadMultipleFiles.invoke(files) { it.fold(onError) {} }
+    fun downloadMultipleFiles(files: List<ImageFile>) =
+        downloadMultipleFiles.invoke(files) { it.fold(onError) {} }
 
     fun downloadZip(files: List<ImageFile>) = downloadZip.invoke(files) { it.fold(onError) {} }
 }

@@ -1,5 +1,7 @@
 package com.numq.stash.websocket
 
+import com.numq.stash.extension.isSocketMessage
+import com.numq.stash.extension.webSocketMessage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -14,7 +16,7 @@ import org.json.JSONObject
 
 class WebSocketService : WebSocketApi {
 
-    private val coroutineContext = Dispatchers.Main + Job()
+    private val coroutineContext = Dispatchers.Default + Job()
     private val coroutineScope = CoroutineScope(coroutineContext)
 
     companion object {
@@ -31,20 +33,24 @@ class WebSocketService : WebSocketApi {
         override fun onMessage(webSocket: WebSocket, text: String) {
             super.onMessage(webSocket, text)
             coroutineScope.launch {
-                messages.send(text)
+                with(text) {
+                    if (isSocketMessage) messages.send(webSocketMessage)
+                }
             }
         }
 
         override fun onMessage(webSocket: WebSocket, bytes: ByteString) {
             super.onMessage(webSocket, bytes)
             coroutineScope.launch {
-                messages.send(bytes.utf8())
+                with(bytes.utf8()) {
+                    if (isSocketMessage) messages.send(webSocketMessage)
+                }
             }
         }
     }
 
     private var socket: WebSocket? = null
-    override val messages: Channel<String> = Channel()
+    override val messages: Channel<WebSocketMessage> = Channel()
 
     override fun signal(type: String, body: JSONObject) = socket?.send(JSONObject().apply {
         put("type", type)
