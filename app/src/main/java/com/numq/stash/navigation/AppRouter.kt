@@ -33,8 +33,8 @@ fun AppRouter() {
 
     val permissions = rememberMultiplePermissionsState(
         listOf(
-            android.Manifest.permission.ACCESS_NETWORK_STATE,
-            android.Manifest.permission.INTERNET
+            android.Manifest.permission.READ_EXTERNAL_STORAGE,
+            android.Manifest.permission.WRITE_EXTERNAL_STORAGE
         )
     )
 

@@ -20,7 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.numq.stash.home.ShowError
+import com.numq.stash.ui.error.ShowError
 import org.koin.androidx.compose.getViewModel
 
 
