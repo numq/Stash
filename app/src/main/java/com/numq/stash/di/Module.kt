@@ -24,16 +24,16 @@ val appModule = module {
     single { NotificationService(androidContext()) } bind NotificationApi::class
     single { LoadingService(androidContext(), get(), get()) } bind LoadingApi::class
     single { FileData(get(), get()) } bind FileRepository::class
-    single { ClearFiles(get()) }
-    single { StartSharing(get()) }
-    single { StopSharing(get()) }
-    single { GetEvents(get()) }
-    single { Refresh(get()) }
-    single { SendFile(get()) }
-    single { UploadFile(get()) }
-    single { DownloadOneFile(get()) }
-    single { DownloadMultipleFiles(get()) }
-    single { DownloadZip(get()) }
+    factory { ClearFiles(get()) }
+    factory { StartSharing(get()) }
+    factory { StopSharing(get()) }
+    factory { GetEvents(get()) }
+    factory { Refresh(get()) }
+    factory { SendFile(get()) }
+    factory { UploadFile(get()) }
+    factory { DownloadOneFile(get()) }
+    factory { DownloadMultipleFiles(get()) }
+    factory { DownloadZip(get()) }
     viewModel {
         FileViewModel(
             get(),
