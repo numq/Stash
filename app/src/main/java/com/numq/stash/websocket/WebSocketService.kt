@@ -12,23 +12,21 @@ import okhttp3.Request
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import okio.ByteString
-import org.json.JSONObject
 
 class WebSocketService : WebSocketApi {
 
+    companion object {
+        const val REASON_DISCONNECT = "disconnect"
+    }
+
     private val coroutineContext = Dispatchers.Default + Job()
     private val coroutineScope = CoroutineScope(coroutineContext)
-
-    companion object {
-        const val DEFAULT_URL = "ws://192.168.1.67:8080"
-        const val DEFAULT_CODE = 1000
-    }
 
     private fun createSocket(client: OkHttpClient, request: Request, listener: WebSocketListener) =
         client.newWebSocket(request, listener)
 
     private val client = OkHttpClient.Builder().build()
-    private val request = Request.Builder().url(DEFAULT_URL).build()
+    private val request = Request.Builder().url(WebSocketConfig.DEFAULT_URL).build()
     private val listener = object : DefaultWebSocketListener() {
         override fun onMessage(webSocket: WebSocket, text: String) {
             super.onMessage(webSocket, text)
@@ -52,10 +50,8 @@ class WebSocketService : WebSocketApi {
     private var socket: WebSocket? = null
     override val messages: Channel<WebSocketMessage> = Channel()
 
-    override fun signal(type: String, body: JSONObject) = socket?.send(JSONObject().apply {
-        put("type", type)
-        put("body", body)
-    }.toString()) == true
+    override fun signal(message: WebSocketMessage) =
+        socket?.send(message.toString()) == true
 
     override fun connect(): Boolean {
         socket = createSocket(client, request, listener)
@@ -63,7 +59,7 @@ class WebSocketService : WebSocketApi {
     }
 
     override fun disconnect(): Boolean {
-        socket?.close(DEFAULT_CODE, "disconnect")
+        socket?.close(WebSocketConfig.DEFAULT_CODE, REASON_DISCONNECT)
         socket = null
         return false
     }

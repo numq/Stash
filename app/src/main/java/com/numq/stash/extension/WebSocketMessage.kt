@@ -1,15 +1,18 @@
 package com.numq.stash.extension
 
-import android.util.Base64
 import com.numq.stash.files.ImageFile
+import com.numq.stash.websocket.WebSocketConstants
 import com.numq.stash.websocket.WebSocketMessage
 
 val WebSocketMessage.isImageFile: Boolean
-    get() = body.has("image") && body.getString("image").startsWith("data:")
+    get() = runCatching {
+        body.has(WebSocketConstants.FILE_EXTENSION) && body.has(WebSocketConstants.FILE_BLOB)
+    }.isSuccess
+
 val WebSocketMessage.imageFile: ImageFile
-    get() = with(body.getString("image")) {
+    get() = with(body) {
         ImageFile(
-            split("/")[1].split(";")[0],
-            Base64.decode(split(",")[1], Base64.DEFAULT)
+            getString(WebSocketConstants.FILE_EXTENSION),
+            getString(WebSocketConstants.FILE_BLOB)
         )
     }

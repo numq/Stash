@@ -1,5 +1,6 @@
 package com.numq.stash.files
 
+import android.util.Base64
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -154,7 +155,7 @@ fun FilesScreen(
 @Composable
 fun ImageFileItem(file: ImageFile, onClick: (ImageFile) -> Unit) {
     AsyncImage(
-        model = file.blob,
+        model = Base64.decode(file.blob, Base64.DEFAULT),
         contentDescription = "shared image",
         Modifier
             .fillMaxWidth()

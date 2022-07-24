@@ -62,17 +62,25 @@ class FileViewModel constructor(
 
     fun clearFiles() = clearFiles.invoke(Unit) { it.fold(onError) {} }
 
-    fun startSharing() =
-        startSharing.invoke(Unit) {
-            it.fold(onError) { connected ->
-                if (connected) _state.update { s ->
-                    s.copy(isSharing = connected)
-                }.also { refresh() }
-            }
+    fun startSharing() = startSharing.invoke(Unit) {
+        it.fold(onError) { connected ->
+            if (connected) _state.update { s ->
+                s.copy(isSharing = connected)
+            }.also { refresh() }
         }
+    }
 
     fun stopSharing() =
-        stopSharing.invoke(Unit) { it.fold(onError) { _state.update { s -> s.copy(isSharing = it) } } }
+        stopSharing.invoke(Unit) {
+            it.fold(onError) {
+                _state.update { s ->
+                    s.copy(
+                        isSharing = it,
+                        imageFiles = emptyList()
+                    )
+                }
+            }
+        }
 
     fun refresh() = refresh.invoke(Unit) { it.fold(onError) {} }
 

@@ -66,9 +66,9 @@ class LoadingService constructor(
         Uri.parse(uri)?.let {
             contentResolver.getType(it)
                 ?.split("/")
-                ?.take(2)
+                ?.takeLast(1)
                 ?.toTypedArray()
-                ?.let { (type, extension) ->
+                ?.let { (extension) ->
                     contentResolver.openInputStream(it).use { stream ->
                         val bitmapExtension =
                             if (extension == "png") Pair(extension, Bitmap.CompressFormat.PNG)
@@ -80,13 +80,11 @@ class LoadingService constructor(
                                     100,
                                     output
                                 )
-                            val blob = "data:$type/${bitmapExtension.first};base64,${
-                                Base64.encodeToString(
-                                    output.toByteArray(),
-                                    Base64.DEFAULT
-                                )
-                            }"
-                            return onUpload(ImageFile(extension, blob.toByteArray()))
+                            val blob = Base64.encodeToString(
+                                output.toByteArray(),
+                                Base64.DEFAULT
+                            )
+                            return onUpload(ImageFile(extension, blob))
                         }
                     }
                 }
@@ -96,7 +94,7 @@ class LoadingService constructor(
     override fun downloadOne(file: ImageFile) = runCatching {
         val target = File(downloads, generateName(file.extension))
         FileOutputStream(target).use {
-            it.write(file.blob)
+            it.write(file.blob.toByteArray())
             true
         }.also { download(target, imageType);showNotification(target, imageType) }
     }.isSuccess
@@ -109,7 +107,7 @@ class LoadingService constructor(
             files.mapIndexed { index, file ->
                 val name = generateName(file.extension, index.toString())
                 zip.putNextEntry(ZipEntry(name))
-                zip.write(file.blob)
+                zip.write(file.blob.toByteArray())
                 true
             }.all { true }.also { showNotification(target, zipType) }
         }
