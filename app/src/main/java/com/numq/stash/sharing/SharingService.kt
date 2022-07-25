@@ -26,9 +26,15 @@ class SharingService(private val webSocket: WebSocketService) : SharingApi {
 
     override fun refresh() = webSocket.signal(WebSocketMessage(WebSocketConstants.REFRESH))
 
-    override fun startSharing() = webSocket.connect()
+    override fun startSharing(): Boolean {
+        webSocket.connect()
+        return true
+    }
 
-    override fun stopSharing() = webSocket.disconnect()
+    override fun stopSharing(): Boolean {
+        webSocket.disconnect()
+        return false
+    }
 
     override fun shareFile(file: ImageFile) =
         webSocket.signal(WebSocketMessage(WebSocketConstants.FILE, JSONObject().apply {

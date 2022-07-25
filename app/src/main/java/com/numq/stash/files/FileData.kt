@@ -24,7 +24,7 @@ class FileData constructor(
 
     override fun refresh() = sharingService.refresh().wrap()
 
-    override fun sendFile(file: ImageFile) = sharingService.shareFile(file).wrap()
+    override fun shareFile(file: ImageFile) = sharingService.shareFile(file).wrap()
 
     override fun uploadFile(uri: String) =
         loadingService.upload(uri) { sharingService.shareFile(it) }.wrap()

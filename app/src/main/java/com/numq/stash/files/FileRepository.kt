@@ -9,7 +9,7 @@ interface FileRepository {
     fun startSharing(): Either<Exception, Boolean>
     fun stopSharing(): Either<Exception, Boolean>
     fun refresh(): Either<Exception, Boolean>
-    fun sendFile(file: ImageFile): Either<Exception, Boolean>
+    fun shareFile(file: ImageFile): Either<Exception, Boolean>
     fun uploadFile(uri: String): Either<Exception, Boolean>
     fun downloadFile(file: ImageFile): Either<Exception, Boolean>
     fun downloadMultipleFiles(files: List<ImageFile>): Either<Exception, Boolean>

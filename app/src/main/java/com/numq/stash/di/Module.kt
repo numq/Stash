@@ -29,7 +29,7 @@ val appModule = module {
     factory { StopSharing(get()) }
     factory { GetEvents(get()) }
     factory { Refresh(get()) }
-    factory { SendFile(get()) }
+    factory { ShareFile(get()) }
     factory { UploadFile(get()) }
     factory { DownloadOneFile(get()) }
     factory { DownloadMultipleFiles(get()) }

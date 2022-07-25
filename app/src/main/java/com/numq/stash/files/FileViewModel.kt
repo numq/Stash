@@ -15,7 +15,7 @@ class FileViewModel constructor(
     private val startSharing: StartSharing,
     private val stopSharing: StopSharing,
     private val refresh: Refresh,
-    private val sendFile: SendFile,
+    private val shareFile: ShareFile,
     private val uploadFile: UploadFile,
     private val downloadOneFile: DownloadOneFile,
     private val downloadMultipleFiles: DownloadMultipleFiles,
@@ -38,7 +38,9 @@ class FileViewModel constructor(
                             }
                             is FileEvent.Refresh -> {
                                 state.value.imageFiles.forEach { file ->
-                                    sendFile.invoke(file) {}
+                                    shareFile.invoke(file) { result ->
+                                        result.fold(onError) {}
+                                    }
                                 }
                             }
                             is FileEvent.File -> {
