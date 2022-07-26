@@ -50,17 +50,16 @@ class WebSocketService : WebSocketApi {
     private var socket: WebSocket? = null
     override val messages: Channel<WebSocketMessage> = Channel()
 
-    override fun signal(message: WebSocketMessage) =
-        socket?.send(message.toString()) == true
+    override fun signal(message: WebSocketMessage) = runCatching {
+        socket?.send(message.toString())
+    }.isSuccess
 
-    override fun connect(): Boolean {
+    override fun connect() = runCatching {
         socket = createSocket(client, request, listener)
-        return true
-    }
+    }.isSuccess
 
-    override fun disconnect(): Boolean {
+    override fun disconnect() = runCatching {
         socket?.close(WebSocketConfig.DEFAULT_CODE, REASON_DISCONNECT)
         socket = null
-        return false
-    }
+    }.isSuccess
 }
