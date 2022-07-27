@@ -3,8 +3,6 @@ package com.numq.stash.loading
 import android.content.ContentResolver
 import android.content.ContentValues
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
@@ -13,7 +11,6 @@ import android.util.Base64
 import androidx.core.content.FileProvider
 import com.numq.stash.files.ImageFile
 import com.numq.stash.notification.NotificationApi
-import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.util.zip.ZipEntry
@@ -69,23 +66,12 @@ class LoadingService constructor(
                 ?.takeLast(1)
                 ?.toTypedArray()
                 ?.let { (extension) ->
-                    contentResolver.openInputStream(it).use { stream ->
-                        val bitmapExtension =
-                            if (extension == "png") Pair(extension, Bitmap.CompressFormat.PNG)
-                            else Pair("jpeg", Bitmap.CompressFormat.JPEG)
-                        ByteArrayOutputStream().use { output ->
-                            BitmapFactory.decodeStream(stream)
-                                .compress(
-                                    bitmapExtension.second,
-                                    100,
-                                    output
-                                )
-                            val blob = Base64.encodeToString(
-                                output.toByteArray(),
-                                Base64.DEFAULT
-                            )
-                            return onUpload(ImageFile(extension, blob))
-                        }
+                    contentResolver.openInputStream(it)?.use { stream ->
+                        val blob = Base64.encodeToString(
+                            stream.readBytes(),
+                            Base64.DEFAULT
+                        )
+                        return onUpload(ImageFile(extension, blob))
                     }
                 }
         }

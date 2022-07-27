@@ -10,7 +10,6 @@ import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.WebSocket
-import okhttp3.WebSocketListener
 import okio.ByteString
 
 class WebSocketService : WebSocketApi {
@@ -21,9 +20,6 @@ class WebSocketService : WebSocketApi {
 
     private val coroutineContext = Dispatchers.Default + Job()
     private val coroutineScope = CoroutineScope(coroutineContext)
-
-    private fun createSocket(client: OkHttpClient, request: Request, listener: WebSocketListener) =
-        client.newWebSocket(request, listener)
 
     private val client = OkHttpClient.Builder().build()
     private val request = Request.Builder().url(WebSocketConfig.DEFAULT_URL).build()
@@ -55,7 +51,7 @@ class WebSocketService : WebSocketApi {
     }.isSuccess
 
     override fun connect() = runCatching {
-        socket = createSocket(client, request, listener)
+        socket = client.newWebSocket(request, listener)
     }.isSuccess
 
     override fun disconnect() = runCatching {

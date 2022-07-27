@@ -1,6 +1,5 @@
 package com.numq.stash.files
 
-import android.util.Base64
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -21,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.numq.stash.extension.base64
 import com.numq.stash.ui.error.ShowError
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -155,7 +155,7 @@ fun FilesScreen(
 @Composable
 fun ImageFileItem(file: ImageFile, onClick: (ImageFile) -> Unit) {
     AsyncImage(
-        model = Base64.decode(file.blob, Base64.DEFAULT),
+        model = file.base64,
         contentDescription = "shared image",
         Modifier
             .fillMaxWidth()
