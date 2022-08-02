@@ -1,18 +1,13 @@
 package com.numq.stash.files
 
-import arrow.core.Either
-import arrow.core.left
-import arrow.core.right
 import com.numq.stash.loading.LoadingApi
 import com.numq.stash.sharing.SharingApi
+import com.numq.stash.wrapper.wrap
 
 class FileData constructor(
     private val loadingService: LoadingApi,
     private val sharingService: SharingApi
 ) : FileRepository {
-
-    private fun <T> T.wrap(): Either<Exception, T> = runCatching { this }.fold({ it.right() },
-        { Exception(it.localizedMessage).left() })
 
     override val events = sharingService.events.wrap()
 
