@@ -1,4 +1,4 @@
-package com.numq.stash.ui.theme
+package com.numq.stash.theme
 
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Shapes

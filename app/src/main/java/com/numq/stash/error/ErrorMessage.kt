@@ -1,4 +1,4 @@
-package com.numq.stash.ui.error
+package com.numq.stash.error
 
 import androidx.compose.material.ScaffoldState
 import androidx.compose.material.SnackbarDuration

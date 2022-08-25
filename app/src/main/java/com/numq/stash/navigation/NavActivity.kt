@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.ui.Modifier
-import com.numq.stash.ui.theme.StashTheme
+import com.numq.stash.theme.StashTheme
 
 class NavActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
