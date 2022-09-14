@@ -6,7 +6,6 @@ plugins {
 
 android {
     compileSdk 32
-
     defaultConfig {
         applicationId "com.numq.stash"
         minSdk 21
