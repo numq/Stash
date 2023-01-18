@@ -1,46 +1,33 @@
 package com.numq.stash.notification
 
-import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
-import androidx.annotation.RequiresApi
+import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.numq.stash.R
 
-class NotificationService constructor(private val context: Context) : NotificationApi {
 
+class NotificationService constructor(
+    private val context: Context
+) {
     companion object {
         const val DOWNLOAD_CHANNEL_ID = "101"
-        const val DOWNLOAD_CHANNEL_NAME = "download"
-        const val DOWNLOAD_NOTIFICATION_ID = 1
+        const val DOWNLOAD_NOTIFICATION_ID = 0
     }
 
     private val notificationManager = NotificationManagerCompat.from(context)
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun createNotificationChannel(
-        id: String,
-        name: String,
-        importance: Int
-    ) {
-        val channel = NotificationChannel(id, name, importance).apply {
-            setShowBadge(true)
-        }
-        notificationManager.createNotificationChannel(channel)
-    }
-
-    override fun showDownloadNotification(uri: String, type: String) {
+    fun showDownloadNotification(uri: String, type: String) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            createNotificationChannel(
+            NotificationChannelCompat.Builder(
                 DOWNLOAD_CHANNEL_ID,
-                DOWNLOAD_CHANNEL_NAME,
-                NotificationManager.IMPORTANCE_HIGH
-            )
+                NotificationManager.IMPORTANCE_DEFAULT
+            ).build()
         }
         val intent = Intent().apply {
             action = Intent.ACTION_VIEW
@@ -53,7 +40,7 @@ class NotificationService constructor(private val context: Context) : Notificati
             setContentText("Click to open")
             setSmallIcon(R.drawable.file_download_done)
             setFullScreenIntent(pendingIntent, true)
-            setTimeoutAfter(3 * 1000L)
+            setTimeoutAfter(5 * 1000L)
         }.build()
         notificationManager.notify(DOWNLOAD_NOTIFICATION_ID, notification)
     }

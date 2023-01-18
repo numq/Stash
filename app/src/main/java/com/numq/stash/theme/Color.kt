@@ -2,7 +2,7 @@ package com.numq.stash.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple200 = Color(0xFFBB86FC)
-val Purple500 = Color(0xFF6200EE)
-val Purple700 = Color(0xFF3700B3)
-val Teal200 = Color(0xFF03DAC5)
+val LightBlue100 = Color(0xFFB3E5FC)
+val LightBlue500 = Color(0xFF039BE5)
+val LightBlue700 = Color(0xFF0288D1)
+val BlueGrey50 = Color(0xFFECEFF1)

@@ -1,20 +1,16 @@
 package com.numq.stash.extension
 
-import com.numq.stash.websocket.WebSocketConstants
-import com.numq.stash.websocket.WebSocketMessage
+import com.numq.stash.websocket.Message
 import org.json.JSONObject
 
 val String.isSocketMessage: Boolean
     get() = runCatching {
         with(JSONObject(this)) {
-            has(WebSocketConstants.TYPE) && has(WebSocketConstants.BODY)
+            has(Message.TYPE) && has(Message.BODY)
         }
     }.isSuccess
 
-val String.webSocketMessage: WebSocketMessage
+val String.message: Message
     get() = with(JSONObject(this)) {
-        WebSocketMessage(
-            getString(WebSocketConstants.TYPE),
-            JSONObject(getString(WebSocketConstants.BODY))
-        )
+        Message(getString(Message.TYPE), JSONObject(getString(Message.BODY)))
     }

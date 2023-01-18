@@ -8,7 +8,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @Composable
-fun ShowError(
+fun ErrorMessage(
     scaffoldState: ScaffoldState,
     exception: Exception,
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
