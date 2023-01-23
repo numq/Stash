@@ -1,7 +1,8 @@
 package com.numq.stash.folder
 
 import arrow.core.Either
-import com.numq.stash.extension.toEither
+import com.numq.stash.extension.catch
+import com.numq.stash.extension.catchAsync
 import com.numq.stash.websocket.ConnectionState
 import com.numq.stash.websocket.SocketClient
 import kotlinx.coroutines.flow.Flow
@@ -17,7 +18,7 @@ interface FolderRepository {
         private val client: SocketClient
     ) : FolderRepository {
 
-        override val sharingState = runCatching {
+        override val sharingState = catch {
             client.connectionState.map {
                 when (it) {
                     ConnectionState.DISCONNECTED -> SharingStatus.OFFLINE
@@ -25,11 +26,10 @@ interface FolderRepository {
                     ConnectionState.CONNECTED -> SharingStatus.SHARING
                 }
             }
-        }.toEither()
+        }
 
-        override suspend fun startSharing() = runCatching { client.start() }.toEither()
+        override suspend fun startSharing() = catchAsync { client.start() }
 
-        override suspend fun stopSharing() = runCatching { client.stop() }.toEither()
-
+        override suspend fun stopSharing() = catchAsync { client.stop() }
     }
 }

@@ -3,13 +3,13 @@ package com.numq.stash.transfer
 import android.content.Context
 import android.net.Uri
 import arrow.core.Either
-import com.numq.stash.extension.toEither
+import com.numq.stash.extension.catch
+import com.numq.stash.extension.catchAsync
 import com.numq.stash.file.File
 import com.numq.stash.file.ImageFile
 import com.numq.stash.notification.NotificationService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.withContext
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
@@ -24,16 +24,16 @@ interface TransferService {
         private val notification: NotificationService
     ) : TransferService {
 
-        override val actions = runCatching {
+        override val actions = catch {
             Channel<TransferAction>(Channel.UNLIMITED)
-        }.toEither()
+        }
 
-        override suspend fun requestTransfer(event: TransferAction) = runCatching {
+        override suspend fun requestTransfer(event: TransferAction) = catch {
             actions.orNull()?.trySend(event)?.getOrThrow() ?: Unit
-        }.toEither()
+        }
 
-        override suspend fun downloadFile(uri: String, file: File) = runCatching {
-            withContext(Dispatchers.IO) {
+        override suspend fun downloadFile(uri: String, file: File) =
+            catchAsync(Dispatchers.IO) {
                 Uri.parse(uri)?.let {
                     context.contentResolver.openOutputStream(it)?.use { os ->
                         os.write(file.bytes)
@@ -46,10 +46,9 @@ interface TransferService {
                     }
                 } ?: Unit
             }
-        }.toEither()
 
-        override suspend fun downloadZip(uri: String, files: List<File>) = runCatching {
-            withContext(Dispatchers.IO) {
+        override suspend fun downloadZip(uri: String, files: List<File>) =
+            catchAsync(Dispatchers.IO) {
                 Uri.parse(uri)?.run {
                     context.contentResolver.openOutputStream(this)?.use {
                         ZipOutputStream(it).use { zip ->
@@ -61,9 +60,7 @@ interface TransferService {
                     }?.also {
                         notification.showDownloadNotification(uri, "application/zip")
                     }
-                }
-            } ?: Unit
-        }.toEither()
-
+                } ?: Unit
+            }
     }
 }
