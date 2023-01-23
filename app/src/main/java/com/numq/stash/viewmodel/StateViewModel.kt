@@ -19,7 +19,6 @@ abstract class StateViewModel<T> constructor(initialValue: T) : ViewModel() {
 
     val onException: (Exception?) -> Unit = { viewModelScope.launch { _exception.send(it) } }
 
-    fun updateState(f: (T) -> T) {
-        _state.update { f(it) }
-    }
+    fun updateState(f: (T) -> T) = _state.update(f)
+
 }
