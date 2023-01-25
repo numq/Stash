@@ -12,7 +12,7 @@ import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
 
 inline fun <reified R> catch(crossinline f: () -> R): Either<Exception, R> =
-    runCatching(f).fold(::Right, ::Left).mapLeft(::Exception)
+    runCatching(f).fold(::Right, ::Left).mapLeft { t -> Exception(t.message, t.cause) }
 
 inline fun <reified R> catch(
     condition: Boolean,
@@ -20,7 +20,7 @@ inline fun <reified R> catch(
     crossinline f: () -> R
 ): Either<Exception, R> =
     if (condition) {
-        runCatching(f).fold(::Right, ::Left).mapLeft(::Exception)
+        runCatching(f).fold(::Right, ::Left).mapLeft { t -> Exception(t.message, t.cause) }
     } else exception.left()
 
 suspend inline fun <reified R> catchAsync(
@@ -31,7 +31,7 @@ suspend inline fun <reified R> catchAsync(
         withContext(coroutineContext) {
             f()
         }
-    }.fold(::Right, ::Left).mapLeft(::Exception)
+    }.fold(::Right, ::Left).mapLeft { t -> Exception(t.message, t.cause) }
 
 suspend inline fun <reified R> catchAsync(
     condition: Boolean,
@@ -44,7 +44,7 @@ suspend inline fun <reified R> catchAsync(
             withContext(coroutineContext) {
                 f()
             }
-        }.fold(::Right, ::Left).mapLeft(::Exception)
+        }.fold(::Right, ::Left).mapLeft { t -> Exception(t.message, t.cause) }
     } else exception.left()
 
 fun <L, R> Either<L, R>.action(): Either<L, CancellableAction> =
