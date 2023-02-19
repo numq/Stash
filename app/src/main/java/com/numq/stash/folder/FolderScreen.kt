@@ -118,13 +118,15 @@ fun FolderScreen(onException: (Exception?) -> Unit) {
                                         animation = tween(2000, easing = LinearEasing)
                                     )
                                 )
-                                Icon(
-                                    Icons.Rounded.Sync,
-                                    "start sharing",
-                                    modifier = Modifier
-                                        .size(32.dp)
-                                        .rotate(angle)
-                                )
+                                IconButton(onClick = vm::stopSharing) {
+                                    Icon(
+                                        Icons.Rounded.Sync,
+                                        "connecting",
+                                        modifier = Modifier
+                                            .size(32.dp)
+                                            .rotate(angle)
+                                    )
+                                }
                             }
                             SharingStatus.OFFLINE -> {
                                 IconButton(onClick = vm::startSharing) {
