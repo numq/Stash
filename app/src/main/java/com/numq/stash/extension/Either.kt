@@ -3,10 +3,7 @@ package com.numq.stash.extension
 import arrow.core.Either
 import arrow.core.Either.Left
 import arrow.core.Either.Right
-import arrow.core.flatMap
 import arrow.core.left
-import arrow.core.right
-import com.numq.stash.action.CancellableAction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
@@ -46,6 +43,3 @@ suspend inline fun <reified R> catchAsync(
             }
         }.fold(::Right, ::Left).mapLeft { t -> Exception(t.message, t.cause) }
     } else exception.left()
-
-fun <L, R> Either<L, R>.action(): Either<L, CancellableAction> =
-    CancellableAction.CANCELED.right().flatMap { this }.map { CancellableAction.COMPLETED }
