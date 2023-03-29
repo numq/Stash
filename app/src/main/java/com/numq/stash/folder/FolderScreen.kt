@@ -22,15 +22,14 @@ import com.numq.stash.extension.countSuffix
 import com.numq.stash.extension.kindTitle
 import com.numq.stash.file.FileItem
 import com.numq.stash.file.FilePreviewItem
-import kotlinx.coroutines.flow.consumeAsFlow
 import org.koin.androidx.compose.getViewModel
 
 @Composable
-fun FolderScreen(onException: (Exception?) -> Unit) {
+fun FolderScreen(onException: (Exception) -> Unit) {
 
     val vm: FolderViewModel = getViewModel()
 
-    onException(vm.exception.consumeAsFlow().collectAsState(null).value)
+    vm.exception.collectAsState(null).value?.let(onException)
 
     val state by vm.state.collectAsState()
 

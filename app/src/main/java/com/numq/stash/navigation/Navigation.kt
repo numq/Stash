@@ -20,7 +20,6 @@ import com.numq.stash.extension.fileName
 import com.numq.stash.folder.FolderScreen
 import com.numq.stash.permission.PermissionsRequired
 import com.numq.stash.transfer.TransferAction
-import kotlinx.coroutines.flow.consumeAsFlow
 import org.koin.androidx.compose.getViewModel
 
 @Composable
@@ -37,9 +36,7 @@ fun Navigation() {
 
     val vm: NavigationViewModel = getViewModel()
 
-    vm.exception.consumeAsFlow().collectAsState(null).value?.let {
-        ErrorMessage(scaffoldState, it)
-    }
+    vm.exception.collectAsState(null).value?.let { ErrorMessage(scaffoldState, it) }
 
     val state by vm.state.collectAsState()
 
