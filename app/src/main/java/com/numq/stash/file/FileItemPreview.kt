@@ -2,7 +2,7 @@ package com.numq.stash.file
 
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
@@ -13,7 +13,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun FilePreviewItem(file: File) {
+fun FileItemPreview(file: File) {
     when (file) {
         is ImageFile -> {
             runCatching {
@@ -22,7 +22,7 @@ fun FilePreviewItem(file: File) {
                 Image(
                     bitmap = it,
                     contentDescription = "image",
-                    modifier = Modifier.fillMaxHeight()
+                    modifier = Modifier.fillMaxSize()
                 )
             }, onFailure = {
                 Icon(Icons.Rounded.Error, "failed to load image")
