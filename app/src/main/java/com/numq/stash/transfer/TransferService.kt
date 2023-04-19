@@ -20,7 +20,8 @@ interface TransferService {
     suspend fun downloadZip(uri: String, files: List<File>): Either<Exception, Unit>
 
     class Implementation constructor(
-        private val context: Context, private val notification: NotificationService
+        private val context: Context,
+        private val notification: NotificationService
     ) : TransferService {
 
         override val actions = catch {
