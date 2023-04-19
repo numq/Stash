@@ -1,6 +1,6 @@
 package com.numq.stash.navigation
 
-import android.util.Log
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,10 +8,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Scaffold
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -36,59 +37,76 @@ fun Navigation() {
 
     val vm: NavigationViewModel = getViewModel()
 
-    vm.exception.collectAsState(null).value?.let { ErrorMessage(scaffoldState, it) }
+    vm.exception.collectAsStateWithLifecycle(null).value?.let { ErrorMessage(scaffoldState, it) }
 
-    val state by vm.state.collectAsState()
+    val state by vm.state.collectAsStateWithLifecycle()
 
-    val uploadLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.OpenMultipleDocuments()
-    ) { list ->
-        try {
-            vm.uploadFiles(list.mapNotNull { uri ->
-                context.contentResolver.openInputStream(uri)?.use {
-                    val fileName = uri.fileName(context)
-                    val name = fileName?.substringBeforeLast(".")
-                    val extension = fileName?.substringAfterLast(".")
-                    if (name != null && extension != null) {
-                        Triple(name, extension, it.readBytes())
-                    } else null
+    @Composable
+    fun uploadFile(action: (List<Uri>) -> Unit) {
+        val launcher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.OpenMultipleDocuments(),
+            onResult = {
+                try {
+                    it.takeIf { it.isNotEmpty() }?.let(action)
+                        ?: throw Exception("Unable to upload file")
+                } catch (e: Exception) {
+                    vm.onException(e)
+                } finally {
+                    vm.completeAction()
                 }
-            })
-        } catch (e: Exception) {
-            e.localizedMessage?.let { Log.e("Upload launcher", it) }
-        } finally {
-            vm.completeAction()
+            }
+        )
+        LaunchedEffect(Unit) {
+            launcher.launch(arrayOf("*/*"))
         }
     }
 
-    val downloadLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.CreateDocument()
-    ) { uri ->
-        try {
-            uri?.let {
-                state.action?.run {
-                    when (this) {
-                        is TransferAction.DownloadFile -> vm.downloadFile(uri.toString(), file)
-                        is TransferAction.DownloadZip -> vm.downloadZip(uri.toString(), files)
-                        else -> Unit
-                    }
+    @Composable
+    fun downloadFile(name: String, extension: String, action: (Uri) -> Unit) {
+        val launcher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.CreateDocument(),
+            onResult = {
+                try {
+                    it?.let(action) ?: throw Exception("Unable to download file")
+                } catch (e: Exception) {
+                    vm.onException(e)
+                } finally {
+                    vm.completeAction()
                 }
             }
-        } catch (e: Exception) {
-            e.localizedMessage?.let { Log.e("Download launcher", it) }
-        } finally {
-            vm.completeAction()
+        )
+        LaunchedEffect(Unit) {
+            launcher.launch("$name.$extension")
         }
     }
 
     state.action?.run {
         when (this) {
-            is TransferAction.Upload -> uploadLauncher.launch(arrayOf("*/*"))
-            is TransferAction.DownloadFile -> {
-                downloadLauncher.launch("${file.name}.${file.extension}")
+            is TransferAction.Upload -> uploadFile { list ->
+                vm.uploadFiles(list.mapNotNull { uri ->
+                    context.contentResolver.openInputStream(uri)?.use {
+                        val fileName = uri.fileName(context)
+                        val name = fileName?.substringBeforeLast(".")
+                        val extension = fileName?.substringAfterLast(".")
+                        if (name != null && extension != null) {
+                            Triple(name, extension, it.readBytes())
+                        } else null
+                    }
+                })
             }
-            is TransferAction.DownloadZip -> {
-                downloadLauncher.launch("${System.currentTimeMillis()}.zip")
+            is TransferAction.DownloadFile -> downloadFile(file.name, file.extension) { uri ->
+                vm.downloadFile(uri.toString(), file)
+            }
+            is TransferAction.DownloadMultipleFiles -> files.forEach { file ->
+                downloadFile(file.name, file.extension) { uri ->
+                    vm.downloadFile(uri.toString(), file)
+                }
+            }
+            is TransferAction.DownloadZip -> downloadFile(
+                "${System.currentTimeMillis()}",
+                "zip"
+            ) { uri ->
+                vm.downloadZip(uri.toString(), files)
             }
         }
     }

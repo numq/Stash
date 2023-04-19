@@ -11,17 +11,17 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.numq.stash.extension.countSuffix
 import com.numq.stash.extension.kindTitle
 import com.numq.stash.file.FileItem
-import com.numq.stash.file.FilePreviewItem
+import com.numq.stash.file.FileItemPreview
 import org.koin.androidx.compose.getViewModel
 
 @Composable
@@ -29,9 +29,9 @@ fun FolderScreen(onException: (Exception) -> Unit) {
 
     val vm: FolderViewModel = getViewModel()
 
-    vm.exception.collectAsState(null).value?.let(onException)
+    vm.exception.collectAsStateWithLifecycle(null).value?.let(onException)
 
-    val state by vm.state.collectAsState()
+    val state by vm.state.collectAsStateWithLifecycle()
 
     val isSharing = state.sharingStatus == SharingStatus.SHARING
 
@@ -250,7 +250,7 @@ fun FolderScreen(onException: (Exception) -> Unit) {
                         Icon(Icons.Rounded.ArrowBack, "previous file")
                     }
                     Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                        FilePreviewItem(file)
+                        FileItemPreview(file)
                     }
                     IconButton(onClick = {
                         vm.nextFile(file)

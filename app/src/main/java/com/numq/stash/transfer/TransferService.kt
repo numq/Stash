@@ -20,46 +20,44 @@ interface TransferService {
     suspend fun downloadZip(uri: String, files: List<File>): Either<Exception, Unit>
 
     class Implementation constructor(
-        private val context: Context,
-        private val notification: NotificationService
+        private val context: Context, private val notification: NotificationService
     ) : TransferService {
 
         override val actions = catch {
-            Channel<TransferAction>(Channel.UNLIMITED)
+            Channel<TransferAction>(Channel.BUFFERED)
         }
 
         override suspend fun requestTransfer(event: TransferAction) = catch {
             actions.orNull()?.trySend(event)?.getOrThrow() ?: Unit
         }
 
-        override suspend fun downloadFile(uri: String, file: File) =
-            catchAsync(Dispatchers.IO) {
-                Uri.parse(uri)?.let {
-                    context.contentResolver.openOutputStream(it)?.use { os ->
-                        os.write(file.bytes)
-                    }?.also {
-                        val mimeType = when (file) {
-                            is ImageFile -> "image/${file.extension}"
-                            else -> "*/*"
-                        }
-                        notification.showDownloadNotification(uri, mimeType)
-                    }
-                } ?: Unit
-            }
+        override suspend fun downloadFile(uri: String, file: File) = catchAsync(Dispatchers.IO) {
+            Uri.parse(uri)?.let { uri ->
+                context.contentResolver.openOutputStream(uri)?.use { os ->
+                    os.write(file.bytes)
+                }
+            }?.also {
+                val mimeType = when (file) {
+                    is ImageFile -> "image/${file.extension}"
+                    else -> "*/*"
+                }
+                notification.showDownloadNotification(uri, mimeType)
+            } ?: Unit
+        }
 
         override suspend fun downloadZip(uri: String, files: List<File>) =
             catchAsync(Dispatchers.IO) {
-                Uri.parse(uri)?.run {
-                    context.contentResolver.openOutputStream(this)?.use {
+                Uri.parse(uri)?.let { uri ->
+                    context.contentResolver.openOutputStream(uri)?.use {
                         ZipOutputStream(it).use { zip ->
                             files.forEach { file ->
                                 zip.putNextEntry(ZipEntry("${file.name}.${file.extension}"))
                                 zip.write(file.bytes)
                             }
                         }
-                    }?.also {
-                        notification.showDownloadNotification(uri, "application/zip")
                     }
+                }?.also {
+                    notification.showDownloadNotification(uri, "application/zip")
                 } ?: Unit
             }
     }
