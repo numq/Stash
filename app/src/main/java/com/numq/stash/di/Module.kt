@@ -2,8 +2,8 @@ package com.numq.stash.di
 
 import android.app.Application
 import android.app.DownloadManager
-import com.numq.stash.config.Configuration
 import com.numq.stash.connection.ConnectionService
+import com.numq.stash.datastore.DefaultDataStore
 import com.numq.stash.file.*
 import com.numq.stash.folder.*
 import com.numq.stash.navigation.NavigationViewModel
@@ -20,14 +20,11 @@ val context = module {
     single { androidContext().getSystemService(Application.DOWNLOAD_SERVICE) as DownloadManager }
     single { ConnectionService(androidContext()) }
     single { NotificationService(androidContext()) }
+    single { DefaultDataStore(androidContext()) }
 }
 
 val socket = module {
-    val address = SocketClient.ADDRESS_PATTERN.format(
-        Configuration.SOCKET_HOSTNAME,
-        Configuration.SOCKET_PORT
-    )
-    single { SocketClient.Implementation(address) } bind SocketClient::class
+    single { SocketClient.Implementation() } bind SocketClient::class
 }
 
 val file = module {
@@ -45,6 +42,7 @@ val folder = module {
     factory { StopSharing(get()) }
     viewModel {
         FolderViewModel(
+            get(),
             get(),
             get(),
             get(),

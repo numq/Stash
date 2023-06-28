@@ -1,4 +1,4 @@
-package com.numq.stash.folder
+package com.numq.stash.folder.container
 
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement

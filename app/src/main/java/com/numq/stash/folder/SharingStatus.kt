@@ -1,5 +1,7 @@
 package com.numq.stash.folder
 
-enum class SharingStatus {
-    OFFLINE, CONNECTING, SHARING
+sealed class SharingStatus private constructor() {
+    object Offline : SharingStatus()
+    object Connecting : SharingStatus()
+    data class Sharing(val address: String) : SharingStatus()
 }

@@ -1,6 +1,5 @@
 package com.numq.stash.websocket
 
-import android.util.Log
 import com.numq.stash.extension.isSocketMessage
 import com.numq.stash.extension.message
 import kotlinx.coroutines.*
@@ -13,65 +12,68 @@ import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
 import java.net.URI
 import java.nio.ByteBuffer
+import java.util.concurrent.TimeUnit
+
 
 interface SocketClient {
     companion object {
-        const val ADDRESS_PATTERN = "ws://%s:%s"
+        const val REGEX_PATTERN =
+            "(ws{1,2})://(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}):(\\d{1,5})"
+        const val DEFAULT_HOSTNAME = "127.0.0.1"
+        const val DEFAULT_PORT = 9000
     }
 
     val connectionState: StateFlow<ConnectionState>
     val messages: Channel<Message>
     suspend fun signal(message: Message)
-    fun start()
+    fun startWithString(address: String?)
+    fun startWithAddress(address: SocketAddress)
     fun stop()
 
-    class Implementation constructor(
-        private val address: String
-    ) : SocketClient {
+    class Implementation : SocketClient {
 
-        private val coroutineContext = Dispatchers.Default + Job()
-        private val coroutineScope = CoroutineScope(coroutineContext)
-
+        private var connectionJob: Job? = null
         private var client: WebSocketClient? = null
 
-        private fun createClient() =
-            object : WebSocketClient(URI(address)) {
-
+        private fun createClient(address: SocketAddress, onSuccess: () -> Unit) =
+            object : WebSocketClient(URI.create(address.toString())) {
                 override fun onOpen(handshakedata: ServerHandshake?) {
-                    Log.d(javaClass.simpleName, "Connected to server")
-                    _connectionState.update { ConnectionState.CONNECTED }
+                    println("Connected to server")
+                    onSuccess()
                 }
 
                 override fun onMessage(message: String?) {
                     message?.takeIf { it.isSocketMessage }?.let {
-                        Log.d(javaClass.simpleName, "Got message from server: ${it.take(50)}")
+                        println("Got message from server: ${it.take(50)}")
                         messages.trySend(it.message)
                     }
                 }
 
                 override fun onMessage(bytes: ByteBuffer?) {
                     bytes?.array()?.toString()?.takeIf { it.isSocketMessage }?.let {
-                        Log.d(javaClass.simpleName, "Got message from server: ${it.take(50)}")
+                        println("Got message from server: ${it.take(50)}")
                         messages.trySend(it.message)
                     }
                 }
 
                 override fun onClose(code: Int, reason: String?, remote: Boolean) {
-                    _connectionState.update { ConnectionState.DISCONNECTED }
-                    Log.d(javaClass.simpleName, "Disconnected from server")
-                    if (code != 1000) start()
+                    println("Disconnected from server")
+                    if (code != 1000) reconnect()
+                    else _connectionState.update { ConnectionState.Disconnected }
                 }
 
                 override fun onError(e: Exception?) {
-                    Log.e(javaClass.simpleName, e?.localizedMessage ?: "Socket error")
+                    println("Client exception: ${e?.localizedMessage ?: "Socket error"}")
                 }
 
                 override fun reconnect() {
-                    Log.d(javaClass.simpleName, "Client reconnecting")
+                    println("Client reconnecting")
+                    startWithAddress(address)
                 }
             }
 
-        private val _connectionState = MutableStateFlow(ConnectionState.DISCONNECTED)
+        private val _connectionState =
+            MutableStateFlow<ConnectionState>(ConnectionState.Disconnected)
         override val connectionState: StateFlow<ConnectionState> = _connectionState.asStateFlow()
 
         override val messages: Channel<Message> = Channel(Channel.UNLIMITED)
@@ -80,24 +82,49 @@ interface SocketClient {
             client?.run { if (isOpen) send(message.toString()) }
         }
 
-        override fun start() {
-            if (client != null) stop()
-            _connectionState.update { ConnectionState.CONNECTING }
-            client = createClient()
-            coroutineScope.launch {
-                delay(1000)
-                try {
-                    client?.connect()
-                } catch (e: Exception) {
-                    client?.reconnect()
-                }
+        private fun connectToClient(address: SocketAddress, callback: () -> Unit = {}) {
+            if (client != null) {
+                client?.close(1000)
+                client = null
+            }
+            _connectionState.update { ConnectionState.Connecting }
+            connectionJob = CoroutineScope(Dispatchers.Default + Job()).launch {
+                delay(1000L)
+                client = createClient(address, callback)
+                client?.connectBlocking(5000, TimeUnit.MILLISECONDS)
+            }
+        }
+
+        override fun startWithString(address: String?) {
+            val socketAddress = address?.let { addr ->
+                Regex(REGEX_PATTERN)
+                    .matchEntire(addr)
+                    ?.groups
+                    ?.filterNotNull()
+                    ?.drop(1)
+                    ?.takeIf { it.size == 3 }
+                    ?.runCatching {
+                        val (protocol, hostname, port) = map { it.value }.toTypedArray()
+                        SocketAddress(protocol, hostname, port.toInt())
+                    }
+                    ?.getOrNull()
+            } ?: SocketAddress()
+            connectToClient(socketAddress) {
+                _connectionState.update { ConnectionState.Connected(socketAddress) }
+            }
+        }
+
+        override fun startWithAddress(address: SocketAddress) {
+            connectToClient(address) {
+                _connectionState.update { ConnectionState.Connected(address) }
             }
         }
 
         override fun stop() {
+            connectionJob?.cancel()
             client?.close(1000)
             client = null
-            _connectionState.update { ConnectionState.DISCONNECTED }
+            _connectionState.update { ConnectionState.Disconnected }
         }
     }
 }

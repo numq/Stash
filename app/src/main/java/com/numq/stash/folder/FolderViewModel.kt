@@ -1,16 +1,15 @@
 package com.numq.stash.folder
 
 import androidx.lifecycle.viewModelScope
+import com.numq.stash.datastore.DefaultDataStore
 import com.numq.stash.file.*
 import com.numq.stash.transfer.RequestTransfer
 import com.numq.stash.transfer.TransferAction
 import com.numq.stash.viewmodel.StateViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 class FolderViewModel constructor(
+    private val dataStore: DefaultDataStore,
     private val getSharingStatus: GetSharingStatus,
     private val startSharing: StartSharing,
     private val stopSharing: StopSharing,
@@ -18,25 +17,36 @@ class FolderViewModel constructor(
     private val refreshFiles: RefreshFiles,
     private val shareFile: ShareFile,
     private val removeFile: RemoveFile,
-    private val requestTransfer: RequestTransfer
+    private val requestTransfer: RequestTransfer,
 ) : StateViewModel<FolderState>(FolderState()) {
 
-    private val observerContext = Dispatchers.Default + Job()
-    private val observerScope = CoroutineScope(observerContext)
+    companion object {
+        const val LAST_AVAILABLE_ADDRESS = "last_available_address"
+    }
+
+    private fun observeLastAvailableAddress() =
+        viewModelScope.launch {
+            dataStore.dataFlow(LAST_AVAILABLE_ADDRESS).collect { address ->
+                updateState { it.copy(lastAvailableAddress = address) }
+            }
+        }
 
     private fun observeSharingStatus() =
-        getSharingStatus.invoke(observerScope, Unit, onException) { sharingStatus ->
-            observerScope.launch {
+        getSharingStatus.invoke(viewModelScope, Unit, onException) { sharingStatus ->
+            viewModelScope.launch {
                 sharingStatus.collect { sharingState ->
-                    if (sharingState == SharingStatus.SHARING) refreshFiles()
+                    if (sharingState is SharingStatus.Sharing) {
+                        dataStore.save(LAST_AVAILABLE_ADDRESS, sharingState.address)
+                        refreshFiles()
+                    }
                     updateState { it.copy(sharingStatus = sharingState) }
                 }
             }
         }
 
     private fun observeFileEvents() =
-        getFileEvents.invoke(observerScope, Unit, onException) { events ->
-            observerScope.launch {
+        getFileEvents.invoke(viewModelScope, Unit, onException) { events ->
+            viewModelScope.launch {
                 events.collect { event ->
                     when (event) {
                         is FileEvent.Refresh -> {
@@ -48,17 +58,22 @@ class FolderViewModel constructor(
                                 )
                             }
                         }
+
                         is FileEvent.Upload -> {
                             updateState {
-                                it.copy(files = listOf(event.file).filterNot { f -> it.files.any { file -> file.name == f.name } }
-                                    .plus(it.files))
+                                it.copy(files = listOf(event.file)
+                                    .filterNot { f -> it.files.any { file -> file.name == f.name } }
+                                    .plus(it.files)
+                                )
                             }
                         }
+
                         is FileEvent.Delete -> {
                             updateState {
                                 it.copy(files = it.files.filterNot { f -> f.name == event.file.name })
                             }
                         }
+
                         else -> Unit
                     }
                 }
@@ -66,11 +81,13 @@ class FolderViewModel constructor(
         }
 
     init {
+        observeLastAvailableAddress()
         observeFileEvents()
         observeSharingStatus()
     }
 
-    fun startSharing() = startSharing.invoke(viewModelScope, Unit, onException)
+    fun startSharing(address: String? = null) =
+        startSharing.invoke(viewModelScope, address, onException)
 
     fun stopSharing() = stopSharing.invoke(viewModelScope, Unit, onException)
 
@@ -173,4 +190,24 @@ class FolderViewModel constructor(
         }
     }
 
+    fun openNetworkInfo() {
+        updateState { it.copy(networkInfoVisible = true) }
+    }
+
+    fun closeNetworkInfo() {
+        updateState { it.copy(networkInfoVisible = false) }
+    }
+
+    fun openConfiguration() {
+        updateState { it.copy(configurationVisible = true) }
+    }
+
+    fun updateConfiguration(address: String) {
+        updateState { it.copy(configurationVisible = false) }
+        startSharing(address)
+    }
+
+    fun cancelConfiguration() {
+        updateState { it.copy(configurationVisible = false) }
+    }
 }

@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.map
 interface FolderRepository {
 
     val sharingState: Either<Exception, Flow<SharingStatus>>
-    suspend fun startSharing(): Either<Exception, Unit>
+    suspend fun startSharing(address: String?): Either<Exception, Unit>
     suspend fun stopSharing(): Either<Exception, Unit>
 
     class Implementation constructor(
@@ -19,16 +19,16 @@ interface FolderRepository {
     ) : FolderRepository {
 
         override val sharingState = catch {
-            client.connectionState.map {
-                when (it) {
-                    ConnectionState.DISCONNECTED -> SharingStatus.OFFLINE
-                    ConnectionState.CONNECTING -> SharingStatus.CONNECTING
-                    ConnectionState.CONNECTED -> SharingStatus.SHARING
+            client.connectionState.map { connection ->
+                when (connection) {
+                    is ConnectionState.Disconnected -> SharingStatus.Offline
+                    is ConnectionState.Connecting -> SharingStatus.Connecting
+                    is ConnectionState.Connected -> SharingStatus.Sharing(connection.address.toString())
                 }
             }
         }
 
-        override suspend fun startSharing() = catchAsync { client.start() }
+        override suspend fun startSharing(address: String?) = catchAsync { client.startWithString(address) }
 
         override suspend fun stopSharing() = catchAsync { client.stop() }
     }
