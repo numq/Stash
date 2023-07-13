@@ -12,7 +12,6 @@ import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
 import java.net.URI
 import java.nio.ByteBuffer
-import java.util.concurrent.TimeUnit
 
 
 interface SocketClient {
@@ -31,6 +30,8 @@ interface SocketClient {
     fun stop()
 
     class Implementation : SocketClient {
+
+        private val clientScope = CoroutineScope(Dispatchers.Default + Job())
 
         private var connectionJob: Job? = null
         private var client: WebSocketClient? = null
@@ -58,8 +59,8 @@ interface SocketClient {
 
                 override fun onClose(code: Int, reason: String?, remote: Boolean) {
                     println("Disconnected from server")
-                    if (code != 1000) reconnect()
-                    else _connectionState.update { ConnectionState.Disconnected }
+                    if (code == 1000) _connectionState.update { ConnectionState.Disconnected }
+                    else reconnect()
                 }
 
                 override fun onError(e: Exception?) {
@@ -68,7 +69,7 @@ interface SocketClient {
 
                 override fun reconnect() {
                     println("Client reconnecting")
-                    startWithAddress(address)
+                    connectToClient(address, onSuccess)
                 }
             }
 
@@ -83,15 +84,14 @@ interface SocketClient {
         }
 
         private fun connectToClient(address: SocketAddress, callback: () -> Unit = {}) {
-            if (client != null) {
-                client?.close(1000)
-                client = null
-            }
-            _connectionState.update { ConnectionState.Connecting }
-            connectionJob = CoroutineScope(Dispatchers.Default + Job()).launch {
-                delay(1000L)
-                client = createClient(address, callback)
-                client?.connectBlocking(5000, TimeUnit.MILLISECONDS)
+            clientScope.launch {
+                connectionJob?.cancelAndJoin()
+                connectionJob = clientScope.launch {
+                    _connectionState.update { ConnectionState.Connecting }
+                    client?.close()
+                    client = createClient(address, callback)
+                    client?.connect()
+                }
             }
         }
 
@@ -121,10 +121,10 @@ interface SocketClient {
         }
 
         override fun stop() {
-            connectionJob?.cancel()
-            client?.close(1000)
-            client = null
-            _connectionState.update { ConnectionState.Disconnected }
+            clientScope.launch {
+                connectionJob?.cancelAndJoin()
+                client?.closeConnection(1000, "closed by client")
+            }
         }
     }
 }

@@ -42,7 +42,7 @@ fun FolderScreen(onException: (Exception) -> Unit) {
 
     Scaffold(
         floatingActionButton = {
-            AnimatedVisibility(selectionMode) {
+            if (selectionMode) AnimatedVisibility(true) {
                 Row(
                     Modifier.padding(4.dp),
                     horizontalArrangement = Arrangement.SpaceEvenly,
